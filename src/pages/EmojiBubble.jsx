@@ -126,10 +126,10 @@ function EmojiBubble() {
             class="flex flex-col justify-center items-center bg-sky-300 p-4"
           >
             <span id="chart" class="flex justify-center mb-2"></span>
-            <p class="text-xs font-light opacity-50">
+            <p class="text-xs font-light opacity-50 text-center">
               #emojibubble for @{handleGenerated()}
             </p>
-            <p class="text-xs font-extralight opacity-40">
+            <p class="text-xs font-extralight opacity-40 text-center">
               Generate yours at {window.location.href}
             </p>
           </span>
