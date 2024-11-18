@@ -23,6 +23,7 @@ function EmojiBubble() {
   const [handleGenerated, setHandleGenerated] = createSignal("");
   const [isLoading, setIsLoading] = createSignal(false);
   const [isChartVisible, setIsChartVisible] = createSignal(false);
+  const [chartData, setChartData] = createSignal("");
 
   const generate = async () => {
     if (handle().trim() === "")
@@ -96,9 +97,12 @@ function EmojiBubble() {
       document.getElementById("chart").innerHTML = "";
       document.getElementById("chart").append(data);
 
-      console.log();
-
       setHandleGenerated(handle());
+
+      const chart = document.getElementById("chartWrapper");
+      const png = await domtoimage.toPng(chart);
+      setChartData(png);
+
       setHandle("");
     } catch (error) {
       console.log(error);
@@ -130,15 +134,18 @@ function EmojiBubble() {
               #emojibubble for @{handleGenerated()}
             </p>
             <p class="text-xs font-extralight opacity-40 text-center">
-              Generate yours at {window.location.href}
+              Generate yours at
+              <br />
+              {window.location.href}
             </p>
           </span>
-          <button
-            onClick={download}
+          <a
+            href={chartData()}
+            download="emoji-bubble.png"
             class="flex flex-row items-center text-sm bg-sky-200 p-2 rounded mb-6 hover:opacity-80"
           >
             <img src={downloadIcon} width="16" class="mr-2" /> Download
-          </button>
+          </a>
         </>
       )}
       {isLoading() && (
