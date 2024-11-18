@@ -3,11 +3,17 @@ import emojiRegex from "emoji-regex";
 
 const regex = emojiRegex();
 
-const getEmojiCounts = async (buffer) => {
+const getEmojiCounts = async (buffer, timePeriod = -1) => {
   let emojiCounts = {};
+
+  let timeFrom = 0;
+  if (timePeriod > -1) {
+    timeFrom = Date.now() - timePeriod * 1000;
+  }
 
   for (const { collection, rkey, record } of iterateAtpRepo(buffer)) {
     if (collection !== "app.bsky.feed.post") continue;
+    if (new Date(record.createdAt).getTime() < timeFrom) continue;
 
     for (const match of (record.text || "").matchAll(regex)) {
       const emoji = match[0];

@@ -10,6 +10,11 @@ import getRepoBuffer from "../lib/getRepoBuffer";
 
 import downloadIcon from "../icons/download-duotone-solid.svg";
 
+const _SECONDS_ALL_TIME = -1;
+const _SECONDS_ONE_DAY = 86400;
+const _SECONDS_ONE_WEEK = _SECONDS_ONE_DAY * 7;
+const _SECONDS_ONE_MONTH = _SECONDS_ONE_WEEK * 28;
+
 const showError = (message) => {
   Swal.fire({
     icon: "error",
@@ -24,6 +29,7 @@ function EmojiBubble() {
   const [isLoading, setIsLoading] = createSignal(false);
   const [isChartVisible, setIsChartVisible] = createSignal(false);
   const [chartData, setChartData] = createSignal("");
+  const [timePeriod, setTimePeriod] = createSignal(_SECONDS_ALL_TIME);
 
   const generate = async () => {
     if (handle().trim() === "")
@@ -37,7 +43,7 @@ function EmojiBubble() {
     setIsLoading(true);
     try {
       const buffer = await getRepoBuffer(handle());
-      const emojiCounts = await getEmojiCounts(buffer);
+      const emojiCounts = await getEmojiCounts(buffer, timePeriod());
 
       if (emojiCounts.length === 0)
         throw new Error(
@@ -102,8 +108,6 @@ function EmojiBubble() {
       const chart = document.getElementById("chartWrapper");
       const png = await domtoimage.toPng(chart);
       setChartData(png);
-
-      setHandle("");
     } catch (error) {
       console.log(error);
       showError(error.message);
@@ -121,6 +125,26 @@ function EmojiBubble() {
     link.click();
   };
 
+  const getTimePeriodLabel = (timePeriodData) => {
+    switch (timePeriodData) {
+      case _SECONDS_ALL_TIME:
+        return "All Time";
+      case _SECONDS_ONE_DAY:
+        return "Last Day";
+      case _SECONDS_ONE_WEEK:
+        return "Last Week";
+      case _SECONDS_ONE_MONTH:
+        return "Last Month";
+      default:
+        return "";
+    }
+  };
+
+  const updateTimePeriod = (newTimePeriod) => {
+    setTimePeriod(newTimePeriod);
+    setIsChartVisible(false);
+  };
+
   return (
     <>
       {isChartVisible() && (
@@ -131,7 +155,8 @@ function EmojiBubble() {
           >
             <span id="chart" class="flex justify-center mb-2"></span>
             <p class="text-xs font-light opacity-50 text-center">
-              #emojibubble for @{handleGenerated()}
+              {getTimePeriodLabel(timePeriod())} #emojibubble for @
+              {handleGenerated()}
             </p>
             <p class="text-xs font-extralight opacity-40 text-center">
               Generate yours at
@@ -178,6 +203,41 @@ function EmojiBubble() {
           class="bg-gray-500 text-white p-2 rounded-e disabled:opacity-50 hover:opacity-80"
         >
           Generate
+        </button>
+      </span>
+      <span class="mt-2">
+        <button
+          class={
+            "p-1 rounded text-xs mr-2 " +
+            (timePeriod() === _SECONDS_ALL_TIME
+              ? "bg-sky-100 font-semibold"
+              : "bg-sky-200")
+          }
+          onClick={() => updateTimePeriod(_SECONDS_ALL_TIME)}
+        >
+          All Time
+        </button>
+        <button
+          class={
+            "p-1 rounded text-xs mr-2 " +
+            (timePeriod() === _SECONDS_ONE_WEEK
+              ? "bg-sky-100 font-semibold"
+              : "bg-sky-200")
+          }
+          onClick={() => updateTimePeriod(_SECONDS_ONE_WEEK)}
+        >
+          Last Week
+        </button>
+        <button
+          class={
+            "p-1 rounded text-xs " +
+            (timePeriod() === _SECONDS_ONE_MONTH
+              ? "bg-sky-100 font-semibold"
+              : "bg-sky-200")
+          }
+          onClick={() => updateTimePeriod(_SECONDS_ONE_MONTH)}
+        >
+          Last Month
         </button>
       </span>
     </>
