@@ -125,6 +125,9 @@ function EmojiBubble() {
     link.click();
   };
 
+  /*href={chartData()}
+  download="emoji-bubble.png"*/
+
   const getTimePeriodLabel = (timePeriodData) => {
     switch (timePeriodData) {
       case _SECONDS_ALL_TIME:
@@ -164,13 +167,12 @@ function EmojiBubble() {
               {window.location.href}
             </p>
           </span>
-          <a
-            href={chartData()}
-            download="emoji-bubble.png"
+          <button
+            onClick={download}
             class="flex flex-row items-center text-sm bg-sky-200 p-2 rounded mb-6 hover:opacity-80"
           >
             <img src={downloadIcon} width="16" class="mr-2" /> Download
-          </a>
+          </button>
         </>
       )}
       {isLoading() && (
