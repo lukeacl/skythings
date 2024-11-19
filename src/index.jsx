@@ -7,6 +7,7 @@ import "./index.css";
 import EmojiBubble from "./pages/EmojiBubble";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
+import BloomfieBubble from "./pages/BloomfieBubble";
 
 const root = document.getElementById("root");
 
@@ -30,11 +31,20 @@ const Layout = (props) => {
         </A>
         <A
           href="/emoji-bubble"
-          class="p-1 bg-sky-400 rounded hover:opacity-80"
+          class="p-1 bg-sky-400 rounded mr-2 hover:opacity-80"
           activeClass="bg-sky-500 font-semibold"
         >
           Emoji Bubble
         </A>
+        {false && (
+          <A
+            href="/bloomfie-bubble"
+            class="p-1 bg-sky-400 rounded hover:opacity-80"
+            activeClass="bg-sky-500 font-semibold"
+          >
+            Bloomfie Bubble
+          </A>
+        )}
       </header>
 
       <main class="flex flex-col items-center mb-6">{props.children}</main>
@@ -61,6 +71,7 @@ render(
       />
       ;
       <Route path="/emoji-bubble" component={EmojiBubble} />
+      <Route path="/bloomfie-bubble" component={BloomfieBubble} />
       <Route path="*404" component={NotFound} />
     </Router>
   ),

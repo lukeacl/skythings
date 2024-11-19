@@ -1,3 +1,4 @@
+import { AtpAgent } from "@atproto/api";
 import * as d3 from "d3";
 import domtoimage from "dom-to-image";
 import * as htmlToImage from "html-to-image";
@@ -8,7 +9,7 @@ import Swal from "sweetalert2";
 import LoadingMessage from "../components/LoadingMessage";
 
 import getDID from "../lib/getDID";
-import getEmojiCounts from "../lib/getEmojiCounts";
+import getFollowingInteractionCounts from "../lib/getFollowingInteractionCounts";
 import getRepoBuffer from "../lib/getRepoBuffer";
 
 import downloadIcon from "../icons/download-duotone-solid.svg";
@@ -26,7 +27,7 @@ const showError = (message) => {
   });
 };
 
-function EmojiBubble() {
+function BloomfieBubble() {
   const [handle, setHandle] = createSignal("");
   const [handleGenerated, setHandleGenerated] = createSignal("");
   const [isLoading, setIsLoading] = createSignal(false);
@@ -46,14 +47,43 @@ function EmojiBubble() {
     try {
       const did = await getDID(handle());
       const buffer = await getRepoBuffer(did);
-      const emojiCounts = await getEmojiCounts(buffer, timePeriod());
+      let followingInteractionCounts = (
+        await getFollowingInteractionCounts(buffer, timePeriod())
+      )
+        .filter((item) => item.did !== did)
+        .slice(0, 100);
 
-      if (emojiCounts.length === 0)
+      if (followingInteractionCounts.length === 0)
         throw new Error(
-          "It doesn't look like you've used any emoji yet! There's nothing to generate.",
+          "It doesn't look like you've interacted with anyone you follow yet! There's nothing to generate.",
         );
 
-      const dataset = { children: emojiCounts };
+      console.log(followingInteractionCounts.length);
+
+      followingInteractionCounts = [
+        {
+          did: did,
+          count: Math.floor(followingInteractionCounts[0].count * 1.25),
+        },
+        ...followingInteractionCounts,
+      ];
+
+      const agent = new AtpAgent({ service: "https://public.api.bsky.app" });
+
+      let avatars = {};
+
+      const chunkSize = 25;
+      for (let i = 0; i < followingInteractionCounts.length; i += chunkSize) {
+        const chunk = followingInteractionCounts
+          .slice(i, i + chunkSize)
+          .map((item) => item.did);
+        const profiles = await agent.getProfiles({ actors: chunk });
+        for (const profile of profiles.data.profiles) {
+          if (profile.avatar) avatars[profile.did] = profile.avatar;
+        }
+      }
+
+      console.log(avatars);
 
       var diameter = Math.min(window.innerWidth, window.innerHeight) * 0.75;
       var color = d3.scaleOrdinal(d3.schemeCategory10);
@@ -61,7 +91,9 @@ function EmojiBubble() {
       const pack = d3.pack().size([diameter, diameter]).padding(1.5);
 
       const root = pack(
-        d3.hierarchy({ children: emojiCounts }).sum((d) => d.count),
+        d3
+          .hierarchy({ children: followingInteractionCounts })
+          .sum((d) => d.count),
       );
 
       const svg = d3
@@ -88,17 +120,16 @@ function EmojiBubble() {
         .attr("fill", (d, i) => color(i))
         .attr("r", (d) => d.r);
 
-      const text = node
-        .append("text")
-        .text(function (d) {
-          return d.data.emoji;
-        })
-        .attr("font-family", "sans-serif")
-        .attr("font-size", function (d) {
-          return d.r * 1.25;
-        })
-        .style("alignment-baseline", "central")
-        .attr("clip-path", (d) => `circle(${d.r})`);
+      const image = node
+        .append("svg:image")
+        .attr("x", (d) => d.r * -1)
+        .attr("y", (d) => d.r * -1)
+        .attr("width", (d) => d.r * 2)
+        .attr("height", (d) => d.r * 2)
+        .attr("xlink:href", (d) => avatars[d.data.did])
+        .attr("clip-path", (d) => `circle(${d.r})`)
+        .attr("fill", (d, i) => color(i))
+        .attr("stroke-width", 2);
 
       const data = Object.assign(svg.node(), { scales: { color } });
 
@@ -120,7 +151,8 @@ function EmojiBubble() {
     htmlToImage
       .toBlob(document.getElementById("chartWrapper"))
       .then(function (blob) {
-        saveAs(blob, "emoji-bubble.png");
+        console.log(blob);
+        //saveAs(blob, "bloomfie-bubble.png");
       });
   };
 
@@ -146,7 +178,7 @@ function EmojiBubble() {
 
   return (
     <>
-      <p class="mb-4 font-semibold">What emoji do you use the most?</p>
+      <p class="mb-4 font-semibold">Who do you interact with the most?</p>
       {isChartVisible() && (
         <>
           <span
@@ -155,7 +187,7 @@ function EmojiBubble() {
           >
             <span id="chart" class="flex justify-center mb-2"></span>
             <p class="text-xs font-light opacity-50 text-center">
-              {getTimePeriodLabel(timePeriod())} #emojibubble for @
+              {getTimePeriodLabel(timePeriod())} #bloomfiebubble for @
               {handleGenerated()}
             </p>
             <p class="text-xs font-extralight opacity-40 text-center">
@@ -245,4 +277,4 @@ function EmojiBubble() {
   );
 }
 
-export default EmojiBubble;
+export default BloomfieBubble;
