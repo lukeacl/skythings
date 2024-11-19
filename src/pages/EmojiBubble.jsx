@@ -29,8 +29,6 @@ function EmojiBubble() {
   const [handleGenerated, setHandleGenerated] = createSignal("");
   const [isLoading, setIsLoading] = createSignal(false);
   const [isChartVisible, setIsChartVisible] = createSignal(false);
-  const [isChartImageVisible, setIsChartImageVisible] = createSignal(false);
-  const [chartData, setChartData] = createSignal("");
   const [timePeriod, setTimePeriod] = createSignal(_SECONDS_ALL_TIME);
 
   const generate = async () => {
@@ -42,7 +40,6 @@ function EmojiBubble() {
     }
 
     setIsChartVisible(false);
-    setIsChartImageVisible(false);
     setIsLoading(true);
     try {
       const buffer = await getRepoBuffer(handle());
@@ -107,20 +104,6 @@ function EmojiBubble() {
       document.getElementById("chart").append(data);
 
       setHandleGenerated(handle());
-
-      /*const chart = document.getElementById("chartWrapper");
-      const png = await domtoimage.toPng(chart, {
-        width: chart.clientWidth * 2,
-        height: chart.clientHeight * 2,
-        style: {
-          transform: "scale(" + 2 + ")",
-          transformOrigin: "top left",
-        },
-      });
-      setChartData(png);*/
-
-      //setIsChartVisible(false);
-      //setIsChartImageVisible(true);
     } catch (error) {
       console.log(error);
       showError(error.message);
@@ -130,21 +113,12 @@ function EmojiBubble() {
   };
 
   const download = async () => {
-    /*const chart = document.getElementById("chartWrapper");
-    const png = await domtoimage.toPng(chart);
-    const link = document.createElement("a");
-    link.download = "emoji-bubble";
-    link.href = png;
-    link.click();*/
     domtoimage
       .toBlob(document.getElementById("chartWrapper"))
       .then(function (blob) {
         saveAs(blob, "emoji-bubble.png");
       });
   };
-
-  /*href={chartData()}
-  download="emoji-bubble.png"*/
 
   const getTimePeriodLabel = (timePeriodData) => {
     switch (timePeriodData) {
@@ -195,7 +169,6 @@ function EmojiBubble() {
           )}
         </>
       )}
-      {isChartImageVisible() && <img src={chartData()} />}
       {isLoading() && (
         <span class="mb-2">
           <LoadingMessage />
