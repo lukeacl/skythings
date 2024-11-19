@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import domtoimage from "dom-to-image";
+import { saveAs } from "file-saver";
 import { createSignal, createEffect, onMount, For } from "solid-js";
 import Swal from "sweetalert2";
 
@@ -107,12 +108,19 @@ function EmojiBubble() {
 
       setHandleGenerated(handle());
 
-      const chart = document.getElementById("chartWrapper");
-      const png = await domtoimage.toPng(chart);
-      setChartData(png);
+      /*const chart = document.getElementById("chartWrapper");
+      const png = await domtoimage.toPng(chart, {
+        width: chart.clientWidth * 2,
+        height: chart.clientHeight * 2,
+        style: {
+          transform: "scale(" + 2 + ")",
+          transformOrigin: "top left",
+        },
+      });
+      setChartData(png);*/
 
-      setIsChartVisible(false);
-      setIsChartImageVisible(true);
+      //setIsChartVisible(false);
+      //setIsChartImageVisible(true);
     } catch (error) {
       console.log(error);
       showError(error.message);
@@ -122,12 +130,17 @@ function EmojiBubble() {
   };
 
   const download = async () => {
-    const chart = document.getElementById("chartWrapper");
+    /*const chart = document.getElementById("chartWrapper");
     const png = await domtoimage.toPng(chart);
     const link = document.createElement("a");
     link.download = "emoji-bubble";
     link.href = png;
-    link.click();
+    link.click();*/
+    domtoimage
+      .toBlob(document.getElementById("chartWrapper"))
+      .then(function (blob) {
+        saveAs(blob, "emoji-bubble.png");
+      });
   };
 
   /*href={chartData()}
@@ -172,12 +185,14 @@ function EmojiBubble() {
               {window.location.href}
             </p>
           </span>
-          <button
-            onClick={download}
-            class="flex flex-row items-center text-sm bg-sky-200 p-2 rounded mb-6 hover:opacity-80"
-          >
-            <img src={downloadIcon} width="16" class="mr-2" /> Download
-          </button>
+          {true && (
+            <button
+              onClick={download}
+              class="flex flex-row items-center text-sm bg-sky-200 p-2 rounded mb-6 hover:opacity-80"
+            >
+              <img src={downloadIcon} width="16" class="mr-2" /> Download
+            </button>
+          )}
         </>
       )}
       {isChartImageVisible() && <img src={chartData()} />}
