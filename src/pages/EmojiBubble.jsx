@@ -28,6 +28,7 @@ function EmojiBubble() {
   const [handleGenerated, setHandleGenerated] = createSignal("");
   const [isLoading, setIsLoading] = createSignal(false);
   const [isChartVisible, setIsChartVisible] = createSignal(false);
+  const [isChartImageVisible, setIsChartImageVisible] = createSignal(false);
   const [chartData, setChartData] = createSignal("");
   const [timePeriod, setTimePeriod] = createSignal(_SECONDS_ALL_TIME);
 
@@ -40,6 +41,7 @@ function EmojiBubble() {
     }
 
     setIsChartVisible(false);
+    setIsChartImageVisible(false);
     setIsLoading(true);
     try {
       const buffer = await getRepoBuffer(handle());
@@ -108,6 +110,9 @@ function EmojiBubble() {
       const chart = document.getElementById("chartWrapper");
       const png = await domtoimage.toPng(chart);
       setChartData(png);
+
+      setIsChartVisible(false);
+      setIsChartImageVisible(true);
     } catch (error) {
       console.log(error);
       showError(error.message);
@@ -175,6 +180,7 @@ function EmojiBubble() {
           </button>
         </>
       )}
+      {isChartImageVisible() && <img src={chartData()} />}
       {isLoading() && (
         <span class="mb-2">
           <LoadingMessage />
