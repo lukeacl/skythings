@@ -58,8 +58,6 @@ function BloomfieBubble() {
           "It doesn't look like you've interacted with anyone you follow yet! There's nothing to generate.",
         );
 
-      console.log(followingInteractionCounts.length);
-
       followingInteractionCounts = [
         {
           did: did,
@@ -82,8 +80,6 @@ function BloomfieBubble() {
           if (profile.avatar) avatars[profile.did] = profile.avatar;
         }
       }
-
-      console.log(avatars);
 
       var diameter = Math.min(window.innerWidth, window.innerHeight) * 0.75;
       var color = d3.scaleOrdinal(d3.schemeCategory10);
@@ -149,10 +145,16 @@ function BloomfieBubble() {
   const download = async () => {
     //domtoimage
     htmlToImage
-      .toBlob(document.getElementById("chartWrapper"))
+      .toPng(document.getElementById("chartWrapper"), {
+        pixelRatio: 1,
+        fetchRequestInit: { mode: "no-cors" },
+      })
       .then(function (blob) {
         console.log(blob);
         //saveAs(blob, "bloomfie-bubble.png");
+      })
+      .catch((error) => {
+        console.log(error);
       });
   };
 
@@ -178,7 +180,7 @@ function BloomfieBubble() {
 
   return (
     <>
-      <p class="mb-4 font-semibold">Who do you interact with the most?</p>
+      <p class="mb-2 font-semibold">Who do you interact with the most?</p>
       {isChartVisible() && (
         <>
           <span
@@ -196,7 +198,7 @@ function BloomfieBubble() {
               {window.location.href}
             </p>
           </span>
-          {true && (
+          {false && (
             <button
               onClick={download}
               class="flex flex-row items-center text-sm bg-sky-200 p-2 rounded mb-6 hover:opacity-80"

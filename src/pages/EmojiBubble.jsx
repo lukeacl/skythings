@@ -118,7 +118,9 @@ function EmojiBubble() {
   const download = async () => {
     //domtoimage
     htmlToImage
-      .toBlob(document.getElementById("chartWrapper"))
+      .toBlob(document.getElementById("chartWrapper"), {
+        pixelRatio: 1,
+      })
       .then(function (blob) {
         saveAs(blob, "emoji-bubble.png");
       });
@@ -146,7 +148,7 @@ function EmojiBubble() {
 
   return (
     <>
-      <p class="mb-4 font-semibold">What emoji do you use the most?</p>
+      <p class="mb-2 font-semibold">What emoji do you use the most?</p>
       {isChartVisible() && (
         <>
           <span

@@ -36,15 +36,13 @@ const Layout = (props) => {
         >
           Emoji Bubble
         </A>
-        {false && (
-          <A
-            href="/bloomfie-bubble"
-            class="p-1 bg-sky-400 rounded hover:opacity-80"
-            activeClass="bg-sky-500 font-semibold"
-          >
-            Bloomfie Bubble
-          </A>
-        )}
+        <A
+          href="/bloomfie-bubble"
+          class="p-1 bg-sky-400 rounded hover:opacity-80"
+          activeClass="bg-sky-500 font-semibold"
+        >
+          Bloomfie Bubble
+        </A>
       </header>
 
       <main class="flex flex-col items-center mb-6">{props.children}</main>
