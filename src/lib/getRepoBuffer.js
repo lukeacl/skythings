@@ -2,9 +2,10 @@ import { AtpAgent } from "@atproto/api";
 
 const getRepoBuffer = async (did) => {
   let pds = undefined;
-  const service = (
-    await (await fetch(`https://plc.directory/${did}`)).json()
-  ).service.find((service) => service.id === "#atproto_pds");
+  const didDoc = did.startsWith("did:web:")
+    ? await fetch(`https://${did.substring("did:web:".length)}/.well-known/did.json`).then(r => r.json())
+    : await fetch(`https://plc.directory/${did}`).then(r => r.json())
+  const service = didDoc.service.find((service) => service.id === "#atproto_pds");
   if (service && service.serviceEndpoint) pds = service.serviceEndpoint;
   if (pds === undefined) throw new Error("Could not resolve PDS.");
 
