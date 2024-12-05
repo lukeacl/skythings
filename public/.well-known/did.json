@@ -11,7 +11,7 @@
       "id": "did:web:skythings.lukeacl.com#atproto",
       "type": "Multikey",
       "controller": "did:web:skythings.lukeacl.com",
-      "publicKeyMultibase": "zQ3shs2gnUuvfkzgmmhPzUV7r1C9saU9P6HRgunZs3YXMjpwV"
+      "publicKeyMultibase": "zQ3shvYFDpmnvVtYzP3PQGFRKWq8zzJXz716GdvaPDPdhLdEM"
     }
   ],
   "service": [
