@@ -1,0 +1,24 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    "https://w3id.org/security/multikey/v1",
+    "https://w3id.org/security/suites/secp256k1-2019/v1"
+  ],
+  "id": "did:web:skythings.lukeacl.com",
+  "alsoKnownAs": ["at://skythings.lukeacl.com"],
+  "verificationMethod": [
+    {
+      "id": "did:web:skythings.lukeacl.com#atproto",
+      "type": "Multikey",
+      "controller": "did:web:skythings.lukeacl.com",
+      "publicKeyMultibase": "zQ3shs2gnUuvfkzgmmhPzUV7r1C9saU9P6HRgunZs3YXMjpwV"
+    }
+  ],
+  "service": [
+    {
+      "id": "#atproto_pds",
+      "type": "AtprotoPersonalDataServer",
+      "serviceEndpoint": "https://pds.lukeacl.com"
+    }
+  ]
+}
