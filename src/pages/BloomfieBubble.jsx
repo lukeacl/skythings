@@ -31,6 +31,7 @@ function BloomfieBubble() {
   const [handle, setHandle] = createSignal("");
   const [handleGenerated, setHandleGenerated] = createSignal("");
   const [isLoading, setIsLoading] = createSignal(false);
+  const [image, setImage] = createSignal("");
   const [isChartVisible, setIsChartVisible] = createSignal(false);
   const [timePeriod, setTimePeriod] = createSignal(_SECONDS_ALL_TIME);
 
@@ -45,7 +46,24 @@ function BloomfieBubble() {
     setIsChartVisible(false);
     setIsLoading(true);
     try {
-      const did = await getDID(handle());
+      const response = await fetch(
+        `https://api.lukeacl.com/bloomfie-bubble?handle=${handle()}&seconds=${timePeriod()}`,
+      );
+      if (response.status === 200) {
+        const blob = await response.blob();
+        const imageBlob = blob.slice(
+          0,
+          blob.size,
+          response.headers.get("content-type"),
+        );
+        const imageObjectURL = URL.createObjectURL(imageBlob);
+        setImage(imageObjectURL);
+        setHandleGenerated(handle());
+      } else {
+        const error = await response.text();
+        throw new Error(error);
+      }
+      /*const did = await getDID(handle());
       const buffer = await getRepoBuffer(did);
       let followingInteractionCounts = (
         await getFollowingInteractionCounts(buffer, timePeriod())
@@ -133,7 +151,7 @@ function BloomfieBubble() {
       document.getElementById("chart").innerHTML = "";
       document.getElementById("chart").append(data);
 
-      setHandleGenerated(handle());
+      setHandleGenerated(handle());*/
     } catch (error) {
       console.log(error);
       showError(error.message);
@@ -143,19 +161,7 @@ function BloomfieBubble() {
   };
 
   const download = async () => {
-    //domtoimage
-    htmlToImage
-      .toPng(document.getElementById("chartWrapper"), {
-        pixelRatio: 1,
-        fetchRequestInit: { mode: "no-cors" },
-      })
-      .then(function (blob) {
-        console.log(blob);
-        //saveAs(blob, "bloomfie-bubble.png");
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    window.location.href = image();
   };
 
   const getTimePeriodLabel = (timePeriodData) => {
@@ -181,6 +187,37 @@ function BloomfieBubble() {
   return (
     <>
       <p class="mb-2 font-semibold">Who do you interact with the most?</p>
+      {image() && (
+        <>
+          <span
+            id="chartWrapper"
+            class="flex flex-col justify-center items-center bg-sky-300 p-4"
+          >
+            <span id="chart" class="flex justify-center mb-2">
+              <img src={image()} style="max-width: 50vw; height: auto;" />
+            </span>
+            <p class="text-xs font-light opacity-50 text-center">
+              {getTimePeriodLabel(timePeriod())} #bloomfiebubble for @
+              {handleGenerated()}
+            </p>
+            <p class="text-xs font-extralight opacity-40 text-center">
+              Generate yours at
+              <br />
+              {window.location.href}
+            </p>
+          </span>
+          {true && (
+            <a
+              href={image()}
+              target="_blank"
+              onClick={download}
+              class="flex flex-row items-center text-sm bg-sky-200 p-2 rounded mb-6 hover:opacity-80"
+            >
+              <img src={downloadIcon} width="16" class="mr-2" /> Download
+            </a>
+          )}
+        </>
+      )}
       {isChartVisible() && (
         <>
           <span
@@ -198,13 +235,15 @@ function BloomfieBubble() {
               {window.location.href}
             </p>
           </span>
-          {false && (
-            <button
+          {true && (
+            <a
+              href={image()}
+              target="_blank"
               onClick={download}
               class="flex flex-row items-center text-sm bg-sky-200 p-2 rounded mb-6 hover:opacity-80"
             >
               <img src={downloadIcon} width="16" class="mr-2" /> Download
-            </button>
+            </a>
           )}
         </>
       )}
