@@ -43,6 +43,7 @@ function BloomfieBubble() {
       setHandle(`${handle()}.bsky.social`);
     }
 
+    setImage("");
     setIsChartVisible(false);
     setIsLoading(true);
     try {
@@ -191,7 +192,7 @@ function BloomfieBubble() {
         <>
           <span
             id="chartWrapper"
-            class="flex flex-col justify-center items-center bg-sky-300 p-4"
+            class="flex flex-col justify-center items-center bg-sky-300 mb-4"
           >
             <span id="chart" class="flex justify-center mb-2">
               <img src={image()} style="max-width: 50vw; height: auto;" />
