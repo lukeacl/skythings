@@ -31,9 +31,12 @@ function BloomfieBubble() {
   const [handle, setHandle] = createSignal("");
   const [handleGenerated, setHandleGenerated] = createSignal("");
   const [isLoading, setIsLoading] = createSignal(false);
+  const [percentLoaded, setPercentLoaded] = createSignal(0);
   const [image, setImage] = createSignal("");
   const [isChartVisible, setIsChartVisible] = createSignal(false);
   const [timePeriod, setTimePeriod] = createSignal(_SECONDS_ALL_TIME);
+  const [size, setSize] = createSignal(2048);
+  const [count, setCount] = createSignal(100);
 
   const generate = async () => {
     if (handle().trim() === "")
@@ -46,113 +49,158 @@ function BloomfieBubble() {
     setImage("");
     setIsChartVisible(false);
     setIsLoading(true);
+    setPercentLoaded(0);
     try {
-      const response = await fetch(
-        `https://api.lukeacl.com/bloomfie-bubble?handle=${handle()}&seconds=${timePeriod()}`,
-      );
-      if (response.status === 200) {
-        const blob = await response.blob();
-        const imageBlob = blob.slice(
-          0,
-          blob.size,
-          response.headers.get("content-type"),
-        );
-        const imageObjectURL = URL.createObjectURL(imageBlob);
-        setImage(imageObjectURL);
-        setHandleGenerated(handle());
-      } else {
-        const error = await response.text();
-        throw new Error(error);
-      }
-      /*const did = await getDID(handle());
+      const publicAgent = new AtpAgent({
+        service: "https://public.api.bsky.app",
+      });
+
+      const did = await getDID(handle());
       const buffer = await getRepoBuffer(did);
+
       let followingInteractionCounts = (
         await getFollowingInteractionCounts(buffer, timePeriod())
       )
         .filter((item) => item.did !== did)
-        .slice(0, 100);
+        .slice(0, count() - 1);
 
-      if (followingInteractionCounts.length === 0)
-        throw new Error(
-          "It doesn't look like you've interacted with anyone you follow yet! There's nothing to generate.",
-        );
+      const maxCount = followingInteractionCounts.reduce(
+        (prev, curr) => Math.max(prev, curr.count),
+        1,
+      );
 
-      followingInteractionCounts = [
-        {
-          did: did,
-          count: Math.floor(followingInteractionCounts[0].count * 1.25),
-        },
-        ...followingInteractionCounts,
-      ];
-
-      const agent = new AtpAgent({ service: "https://public.api.bsky.app" });
-
-      let avatars = {};
+      followingInteractionCounts.push({
+        did: did,
+        count: Math.floor(Math.max(maxCount * 1.25, 5)),
+      });
+      followingInteractionCounts = followingInteractionCounts.sort(
+        (a, b) => b.count - a.count,
+      );
 
       const chunkSize = 25;
       for (let i = 0; i < followingInteractionCounts.length; i += chunkSize) {
         const chunk = followingInteractionCounts
           .slice(i, i + chunkSize)
           .map((item) => item.did);
-        const profiles = await agent.getProfiles({ actors: chunk });
+        const profiles = await publicAgent.getProfiles({ actors: chunk });
         for (const profile of profiles.data.profiles) {
-          if (profile.avatar) avatars[profile.did] = profile.avatar;
+          const index = followingInteractionCounts.findIndex(
+            (f) => f.did === profile.did,
+          );
+          followingInteractionCounts[index].handle = profile.handle;
+          if (profile.avatar) {
+            followingInteractionCounts[index].avatar = profile.avatar;
+          }
         }
       }
 
-      var diameter = Math.min(window.innerWidth, window.innerHeight) * 0.75;
+      const padding = 80;
+      const interCirclePadding = 4;
+
       var color = d3.scaleOrdinal(d3.schemeCategory10);
-
-      const pack = d3.pack().size([diameter, diameter]).padding(1.5);
-
+      const pack = d3
+        .pack()
+        .size([size() - padding * 2, size() - padding * 2])
+        .padding(interCirclePadding);
       const root = pack(
         d3
           .hierarchy({ children: followingInteractionCounts })
           .sum((d) => d.count),
       );
 
-      const svg = d3
-        .create("svg")
-        .attr("width", diameter)
-        .attr("height", diameter)
-        .attr("viewBox", [0, 0, diameter, diameter])
-        .attr(
-          "style",
-          "max-width: 75%; height: auto; font: 10px sans-serif; background-color: #eeeeee; padding: 10px; border-radius: 50%;",
-        )
-        .attr("text-anchor", "middle");
+      const canvas = document.createElement("canvas");
+      canvas.width = size();
+      canvas.height = size();
 
-      const node = svg
-        .append("g")
-        .selectAll()
-        .data(root.leaves())
-        .join("g")
-        .attr("transform", (d) => `translate(${d.x},${d.y})`);
+      const ctx = canvas.getContext("2d");
 
-      node
-        .append("circle")
-        .attr("fill-opacity", 0.7)
-        .attr("fill", (d, i) => color(i))
-        .attr("r", (d) => d.r);
+      ctx.fillStyle = "#7dd3fc";
+      ctx.fillRect(0, 0, size(), size());
 
-      const image = node
-        .append("svg:image")
-        .attr("x", (d) => d.r * -1)
-        .attr("y", (d) => d.r * -1)
-        .attr("width", (d) => d.r * 2)
-        .attr("height", (d) => d.r * 2)
-        .attr("xlink:href", (d) => avatars[d.data.did])
-        .attr("clip-path", (d) => `circle(${d.r})`)
-        .attr("fill", (d, i) => color(i))
-        .attr("stroke-width", 2);
+      ctx.beginPath();
+      ctx.arc(size() / 2, size() / 2, size() / 2 - padding, 0, 2 * Math.PI);
+      ctx.fillStyle = "#eeeeee";
+      ctx.fill();
 
-      const data = Object.assign(svg.node(), { scales: { color } });
+      const avatarPromises = [];
+      let avatarPromisesCompleted = 0;
 
-      setIsChartVisible(true);
-      document.getElementById("chart").innerHTML = "";
-      document.getElementById("chart").append(data);
+      for (const [index, child] of (root.children || []).entries()) {
+        ctx.beginPath();
+        ctx.arc(child.x + padding, child.y + padding, child.r, 0, 2 * Math.PI);
+        ctx.fillStyle = color(index) + "aa";
+        ctx.fill();
 
-      setHandleGenerated(handle());*/
+        if (child.data.avatar) {
+          try {
+            avatarPromises.push(
+              new Promise(async (resolve) => {
+                const [, , , , , , did, cid] = child.data.avatar
+                  .split("@")[0]
+                  .split("/");
+                const url = `https://api.lukeacl.com/at/blob/${did}/${cid}`;
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const objectURL = URL.createObjectURL(blob);
+                const img = new Image();
+                img.onload = () => {
+                  ctx.save();
+                  ctx.beginPath();
+                  ctx.arc(
+                    child.x + padding,
+                    child.y + padding,
+                    child.r,
+                    0,
+                    Math.PI * 2,
+                  );
+                  ctx.closePath();
+                  ctx.clip();
+                  ctx.drawImage(
+                    img,
+                    child.x + padding - child.r,
+                    child.y + padding - child.r,
+                    child.r * 2,
+                    child.r * 2,
+                  );
+                  ctx.restore();
+                  URL.revokeObjectURL(objectURL);
+                  resolve();
+                };
+                img.onerror = () => {
+                  URL.revokeObjectURL(objectURL);
+                  resolve();
+                };
+                img.src = objectURL;
+              }).then(() => {
+                avatarPromisesCompleted++;
+                setPercentLoaded(
+                  Math.floor(
+                    (avatarPromisesCompleted / (root.children || []).length) *
+                      100,
+                  ),
+                );
+              }),
+            );
+          } catch (error) {
+            console.log(error);
+          }
+        }
+      }
+
+      await Promise.all(avatarPromises);
+
+      await new Promise((resolve) => {
+        canvas.toBlob((blob) => {
+          try {
+            const blobUrl = URL.createObjectURL(blob);
+            setImage(blobUrl);
+            setHandleGenerated(handle());
+          } catch (error) {
+          } finally {
+            resolve();
+          }
+        });
+      });
     } catch (error) {
       console.log(error);
       showError(error.message);
@@ -277,7 +325,7 @@ function BloomfieBubble() {
           onClick={generate}
           class="bg-gray-500 text-white p-2 rounded-e disabled:opacity-50 hover:opacity-80"
         >
-          Generate
+          Generate{isLoading() ? ` (${percentLoaded()}%)` : ""}
         </button>
       </span>
       <span class="mt-2">
