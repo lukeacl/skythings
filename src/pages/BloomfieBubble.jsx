@@ -325,7 +325,8 @@ function BloomfieBubble() {
           onClick={generate}
           class="bg-gray-500 text-white p-2 rounded-e disabled:opacity-50 hover:opacity-80"
         >
-          Generate{isLoading() ? ` (${percentLoaded()}%)` : ""}
+          Generate
+          {isLoading() && percentLoaded() > 0 ? ` (${percentLoaded()}%)` : ""}
         </button>
       </span>
       <span class="mt-2">
