@@ -49,6 +49,7 @@ function BloomfieBubble() {
   const [size, setSize] = createSignal(2048);
   const [count, setCount] = createSignal(100);
   const [altText, setAltText] = createSignal("");
+  const [timestamp, setTimestamp] = createSignal(new Date().getTime());
 
   const generate = async () => {
     if (handle().trim() === "")
@@ -62,6 +63,7 @@ function BloomfieBubble() {
     setIsChartVisible(false);
     setIsLoading(true);
     setPercentLoaded(0);
+    setTimestamp(new Date().getTime());
     try {
       const publicAgent = new AtpAgent({
         service: "https://public.api.bsky.app",
@@ -364,7 +366,7 @@ function BloomfieBubble() {
           </span>
           <span class="flex flex-row">
             <a
-              download={"bloomfiebubble.png"}
+              download={`bloomfiebubble-${timestamp()}.png`}
               href={image()}
               target="_blank"
               onClick={download}
