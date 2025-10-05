@@ -14,6 +14,8 @@ import getRepoBuffer from "../lib/getRepoBuffer";
 
 import downloadIcon from "../icons/download-duotone-solid.svg";
 
+import bubbleImage from "../images/bubble.png";
+
 const _SECONDS_ALL_TIME = -1;
 const _SECONDS_ONE_DAY = 86400;
 const _SECONDS_ONE_WEEK = _SECONDS_ONE_DAY * 7;
@@ -117,10 +119,10 @@ function BloomfieBubble() {
       ctx.fillStyle = "#7dd3fc";
       ctx.fillRect(0, 0, size(), size());
 
-      ctx.beginPath();
+      /*ctx.beginPath();
       ctx.arc(size() / 2, size() / 2, size() / 2 - padding, 0, 2 * Math.PI);
       ctx.fillStyle = "#eeeeee";
-      ctx.fill();
+      ctx.fill();*/
 
       const avatarPromises = [];
       let avatarPromisesCompleted = 0;
@@ -188,6 +190,24 @@ function BloomfieBubble() {
       }
 
       await Promise.all(avatarPromises);
+
+      await new Promise(async (resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          ctx.drawImage(
+            img,
+            padding / 2,
+            padding / 2,
+            size() - padding,
+            size() - padding,
+          );
+          resolve();
+        };
+        img.onerror = () => {
+          resolve();
+        };
+        img.src = bubbleImage;
+      });
 
       await new Promise((resolve) => {
         canvas.toBlob((blob) => {
