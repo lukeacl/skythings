@@ -138,7 +138,7 @@ function BloomfieBubble() {
       let avatarPromisesCompleted = 0;
 
       let newAltText = `A bubble on a blue background containing a circular avatar of @${handle()} in the middle, then arranged around @${handle()} more circular avatars of people @${handle()} interacts with the most. The size of the circlular avatars are getting smaller as you move around and outwards representing less and less interaction. Avatars in order from most interaction to least interaction include `;
-      let altTextFooter = `. A credit at the bottom right reads ${handle()} ${getTimePeriodLabel(timePeriod())} #BloomfieBubble skythings.lukeacl.com.`;
+      let altTextFooter = `. A credit at the bottom right reads @${handle()} ${getTimePeriodLabel(timePeriod())} #BloomfieBubble skythings.lukeacl.com.`;
 
       for (const [index, child] of (root.children || []).entries()) {
         ctx.beginPath();
