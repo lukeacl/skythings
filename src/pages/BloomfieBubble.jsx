@@ -353,6 +353,14 @@ function BloomfieBubble() {
 
   return (
     <>
+      <p class="font-semibold mb-2">Bloomfie Bubble is just Bubbel now!</p>
+      <p class="mb-2">Check it out here:</p>
+      <p class="mb-2"><a href="https://bubbel.blue">https://bubbel.blue</a></p>
+    </>
+  );
+
+  return (
+    <>
       <p class="font-semibold mb-2">Who do you interact with the most?</p>
       {image() && (
         <>
